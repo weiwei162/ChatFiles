@@ -9,6 +9,12 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+from supabase import create_client, Client
+
+url: str = os.environ.get("SUPABASE_URL")
+key: str = os.environ.get("SUPABASE_KEY")
+supabase: Client = create_client(url, key)
+
 OPENAI_API_KEY = os.environ.get('OPENAI_API_KEY')
 openai.api_key = OPENAI_API_KEY
 
@@ -18,15 +24,19 @@ llm_predictor = LLMPredictor(llm=ChatOpenAI(
 service_context = ServiceContext.from_defaults(llm_predictor=llm_predictor)
 
 
-def create_index(filepath, index_name):
+def create_index(filepath, index_name, project):
     index = get_index_by_index_name(index_name)
     if index is not None:
         return index
 
-    index_name = get_name_with_json_extension(index_name)
+    # index_name = get_name_with_json_extension(index_name)
     documents = SimpleDirectoryReader(input_files=[filepath]).load_data()
     index = GPTSimpleVectorIndex.from_documents(documents)
-    index.save_to_disk(get_index_filepath(index_name))
+
+    data, count = supabase.table('files').insert(
+        { "project_id": project, "path": index_name, "meta": index.save_to_dict() }
+        ).execute()
+    # index.save_to_disk(get_index_filepath(index_name))
     return index
 
 

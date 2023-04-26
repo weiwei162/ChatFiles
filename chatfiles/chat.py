@@ -10,9 +10,9 @@ def check_llama_index_exists(file_name):
     return check_index_file_exists(index_name)
 
 
-def create_llama_index(filepath):
+def create_llama_index(filepath, project):
     index_name = get_index_name_from_file_path(filepath)
-    index = create_index(filepath, index_name)
+    index = create_index(filepath, index_name, project)
     return index_name, index
 
 

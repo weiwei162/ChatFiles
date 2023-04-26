@@ -2,6 +2,7 @@ import argparse
 import os
 
 from flask import Flask, request, make_response
+from flask_cors import CORS
 
 from chat import create_llama_index, get_answer_from_index, check_llama_index_exists, get_answer_from_graph, \
     create_llama_graph_index
@@ -11,10 +12,15 @@ from file import get_index_path, get_index_name_from_file_path, check_index_file
     decompress_files_and_get_filepaths, clean_files, check_index_exists
 
 app = Flask(__name__)
-
+CORS(app)
 
 @app.route('/upload', methods=['POST'])
 def upload_file():
+    project = request.form.get('project')
+    upload_dir = get_index_path(project)
+    if not os.path.exists(upload_dir):
+        os.makedirs(upload_dir)
+
     if 'file' not in request.files:
         return "Please send a POST request with a file", 400
     filepath = None
@@ -23,14 +29,14 @@ def upload_file():
 
         filename = uploaded_file.filename
         if check_file_is_compressed(filename) is False:
-            filepath = os.path.join(get_index_path(), os.path.basename(filename))
+            filepath = os.path.join(upload_dir, os.path.basename(filename))
 
-            if check_llama_index_exists(filepath) is True:
-                return get_index_name_without_json_extension(get_index_name_from_file_path(filepath))
+            # if check_llama_index_exists(filepath) is True:
+            #     return get_index_name_without_json_extension(get_index_name_from_file_path(filepath))
 
             uploaded_file.save(filepath)
 
-            index_name, index = create_llama_index(filepath)
+            index_name, index = create_llama_index(filepath, project)
 
             clean_file(filepath)
             return make_response(

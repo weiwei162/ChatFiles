@@ -36,8 +36,8 @@ def get_index_filepath(index_name):
     return index_file_dir / index_name
 
 
-def get_index_path():
-    return index_path
+def get_index_path(project):
+    return os.path.join(index_path, project)
 
 
 def check_index_file_exists(index_name):
