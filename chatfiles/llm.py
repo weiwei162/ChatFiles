@@ -64,3 +64,16 @@ def get_graph_by_graph_name(graph_name):
     graph_path = get_index_filepath(graph_name)
     graph = ComposableGraph.load_from_disk(graph_path, service_context=service_context)
     return graph
+
+
+def get_graph_by_project(project):
+    data = supabase.table("files").select("*").eq("project_id", project).execute()
+    index_sets = {}
+    for file in data.data:
+        index = GPTSimpleVectorIndex.load_from_dict(file['meta'])
+        index_sets[file['path']] = index
+    graph = ComposableGraph.from_indices(GPTListIndex,
+                                         [index for _, index in index_sets.items()],
+                                         index_summaries=[f"This index contains {indexName}" for indexName, _ in index_sets.items()],
+                                         service_context=service_context)
+    return graph
