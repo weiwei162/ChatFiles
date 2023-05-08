@@ -1,6 +1,6 @@
 import os
 import openai
-from langchain.chat_models import ChatOpenAI
+from langchain.chat_models import ChatOpenAI, AzureChatOpenAI
 from llama_index import ComposableGraph, GPTListIndex, LLMPredictor, GPTSimpleVectorIndex, ServiceContext, \
     SimpleDirectoryReader
 
@@ -18,8 +18,8 @@ supabase: Client = create_client(url, key)
 OPENAI_API_KEY = os.environ.get('OPENAI_API_KEY')
 openai.api_key = OPENAI_API_KEY
 
-llm_predictor = LLMPredictor(llm=ChatOpenAI(
-    temperature=0.2, model_name="gpt-3.5-turbo"))
+llm_predictor = LLMPredictor(llm=AzureChatOpenAI(
+    deployment_name="gpt-35-turbo"))
 
 service_context = ServiceContext.from_defaults(llm_predictor=llm_predictor)
 
