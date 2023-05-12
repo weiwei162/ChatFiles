@@ -9,6 +9,9 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+from langchain.embeddings import OpenAIEmbeddings
+from llama_index import LangchainEmbedding
+
 from supabase import create_client, Client
 
 url: str = os.environ.get("SUPABASE_URL")
@@ -21,7 +24,14 @@ openai.api_key = OPENAI_API_KEY
 llm_predictor = LLMPredictor(llm=AzureChatOpenAI(
     deployment_name="gpt-35-turbo"))
 
-service_context = ServiceContext.from_defaults(llm_predictor=llm_predictor)
+embedding_llm = LangchainEmbedding(
+    OpenAIEmbeddings(),
+    embed_batch_size=1,
+)
+
+service_context = ServiceContext.from_defaults(
+    llm_predictor=llm_predictor,
+    embed_model=embedding_llm)
 
 
 def create_index(filepath, index_name, project):
@@ -31,7 +41,7 @@ def create_index(filepath, index_name, project):
 
     # index_name = get_name_with_json_extension(index_name)
     documents = SimpleDirectoryReader(input_files=[filepath]).load_data()
-    index = GPTSimpleVectorIndex.from_documents(documents)
+    index = GPTSimpleVectorIndex.from_documents(documents, service_context=service_context)
 
     data, count = supabase.table('files').insert(
         { "project_id": project, "path": index_name, "meta": index.save_to_dict() }

@@ -56,6 +56,7 @@ def upload_file():
                 {"indexName": get_index_name_without_json_extension(graph_name), "indexType": "graph"}), 200
 
     except Exception as e:
+        print(traceback.format_exc())
         # cleanup temp file
         if filepath is not None and os.path.exists(filepath):
             os.remove(filepath)
