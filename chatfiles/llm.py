@@ -2,7 +2,7 @@ import os
 import openai
 from langchain.chat_models import ChatOpenAI, AzureChatOpenAI
 from llama_index import ComposableGraph, GPTListIndex, LLMPredictor, GPTSimpleVectorIndex, ServiceContext, \
-    SimpleDirectoryReader
+    SimpleDirectoryReader, download_loader
 
 from file import check_index_file_exists, get_index_filepath, get_name_with_json_extension
 from dotenv import load_dotenv
@@ -32,6 +32,20 @@ embedding_llm = LangchainEmbedding(
 service_context = ServiceContext.from_defaults(
     llm_predictor=llm_predictor,
     embed_model=embedding_llm)
+
+
+def create_remote_index(url, project):
+    RemoteDepthReader = download_loader("RemoteDepthReader")
+
+    loader = RemoteDepthReader(domain_lock=True)
+    documents = loader.load_data(url)
+    print(f"Found {len(documents)} documents.")
+    index = GPTSimpleVectorIndex.from_documents(documents[:5], service_context=service_context)
+
+    data, count = supabase.table('files').insert(
+        { "project_id": project, "path": url, "meta": index.save_to_dict() }
+        ).execute()
+    return index
 
 
 def create_index(filepath, index_name, project):

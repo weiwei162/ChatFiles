@@ -7,6 +7,7 @@ from flask_cors import CORS
 
 from chat import create_llama_index, get_answer_from_index, check_llama_index_exists, get_answer_from_graph, \
     create_llama_graph_index, get_answer_from_project
+from llm import create_remote_index
 
 from file import get_index_path, get_index_name_from_file_path, check_index_file_exists, \
     get_index_name_without_json_extension, clean_file, check_file_is_compressed, index_path, compress_path, \
@@ -17,6 +18,21 @@ logging.getLogger().setLevel(logging.DEBUG)
 
 app = Flask(__name__)
 CORS(app)
+
+@app.route('/remote', methods=['POST'])
+def remote():
+    project = request.json.get('project')
+    url = request.json.get('url')
+    try:
+        index = create_remote_index(url, project)
+
+        return make_response(
+            {"indexType": "index"}), 200
+
+    except Exception as e:
+        print(traceback.format_exc())
+        return "Error: {}".format(str(e)), 500
+
 
 @app.route('/upload', methods=['POST'])
 def upload_file():
