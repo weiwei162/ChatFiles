@@ -23,8 +23,10 @@ CORS(app)
 def remote():
     project = request.json.get('project')
     url = request.json.get('url')
+    depth = request.json.get('depth', 1)
+    limit = request.json.get('limit', 3)
     try:
-        index = create_remote_index(url, project)
+        index = create_remote_index(url, project, depth, limit)
 
         return make_response(
             {"indexType": "index"}), 200

@@ -1,4 +1,4 @@
-FROM python:3.8
+FROM quay.io/unstructured-io/unstructured:latest
 
 WORKDIR /app
 
@@ -9,4 +9,4 @@ RUN pip install -r requirements.txt
 COPY . .
 
 EXPOSE 5000
-CMD [ "python", "server.py"]
+CMD [ "python3.8", "server.py"]

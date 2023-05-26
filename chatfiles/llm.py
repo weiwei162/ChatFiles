@@ -34,13 +34,14 @@ service_context = ServiceContext.from_defaults(
     embed_model=embedding_llm)
 
 
-def create_remote_index(url, project):
-    RemoteDepthReader = download_loader("RemoteDepthReader")
+def create_remote_index(url, project, depth, limit):
+    RemoteDepthReader = download_loader("RemoteDepthReader",
+        loader_hub_url="https://raw.githubusercontent.com/weiwei162/llama-hub/main/loader_hub")
 
-    loader = RemoteDepthReader(domain_lock=True)
+    loader = RemoteDepthReader(depth=depth, domain_lock=True)
     documents = loader.load_data(url)
     print(f"Found {len(documents)} documents.")
-    index = GPTSimpleVectorIndex.from_documents(documents[:5], service_context=service_context)
+    index = GPTSimpleVectorIndex.from_documents(documents[:limit], service_context=service_context)
 
     data, count = supabase.table('files').insert(
         { "project_id": project, "path": url, "meta": index.save_to_dict() }
